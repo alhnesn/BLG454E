@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import Tk, Frame, Button, Label, Entry, Text, Scrollbar, filedialog, messagebox, Toplevel, Listbox, SINGLE
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from sklearn.datasets import make_blobs, make_moons, make_circles
 import numpy as np
 import matplotlib.pyplot as plt
 from itertools import cycle
@@ -28,16 +29,28 @@ class InteractiveTool:
         self.agglom_plot = None
 
         self.example_datasets = [
-            {"filename": "Project/Implementation/examples/concentric_circles_example.csv", "title": "Concentric Circles Example"},
-            {"filename": "Project/Implementation/examples/polynomial_example1.csv", "title": "Polynomial Example 1"},
-            {"filename": "Project/Implementation/examples/polynomial_example2.csv", "title": "Polynomial Example 2"},
-            {"filename": "Project/Implementation/examples/tilted_blobs_example.csv", "title": "Tilted Blobs Example"},
-            {"filename": "Project/Implementation/examples/two_moons_example.csv", "title": "Two Moons Example"}
+            {"title": "Concentric Circles Example", "generator": lambda: make_circles(n_samples=300, factor=0.5, noise=0.05)[0]},
+            {"title": "Polynomial Example 1", "generator": self.generate_polynomial_example1},
+            {"title": "Polynomial Example 2", "generator": self.generate_polynomial_example2},
+            {"title": "Tilted Blobs Example", "generator": lambda: make_blobs(n_samples=300, centers=3, cluster_std=1.0, random_state=42)[0]},
+            {"title": "Two Moons Example", "generator": lambda: make_moons(n_samples=300, noise=0.1)[0]}
         ]
 
         self.create_widgets()
         plot_initial_graph(self)
         setup_zoom_feature(self)
+
+
+    def generate_polynomial_example1(self):
+        x = np.linspace(-10, 10, 300)
+        y = 0.5 * x**2 - 2 * x + 1 + np.random.normal(scale=5, size=x.shape)
+        return np.column_stack((x, y))
+
+    def generate_polynomial_example2(self):
+        x = np.linspace(-10, 10, 300)
+        y = -0.3 * x**3 + 2 * x**2 - x + np.random.normal(scale=10, size=x.shape)
+        return np.column_stack((x, y))
+
 
     def create_widgets(self):
         style = {
@@ -239,26 +252,26 @@ class InteractiveTool:
             messagebox.showerror("Error", "No dataset selected")
             return
 
-        selected_dataset = self.example_datasets[selected_index[0]]["filename"]
+        selected_dataset = self.example_datasets[selected_index[0]]["generator"]
         try:
-            data = np.loadtxt(selected_dataset, delimiter=',', skiprows=1)
-            if data.shape[1] != 2:
-                raise ValueError("CSV file does not have the correct format")
+            data = selected_dataset()
+            if len(data.shape) == 2 and data.shape[1] == 2:
+                if len(data) > 300:
+                    if messagebox.askyesno("Reduce Points", "The dataset contains more than 300 points. Do you want to reduce the number of points?"):
+                        factor = len(data) // 300
+                        data = data[::factor]
 
-            if len(data) > 300:
-                if messagebox.askyesno("Reduce Points", "The CSV file contains more than 300 points. Do you want to reduce the number of points?"):
-                    factor = len(data) // 300
-                    data = data[::factor]
-
-            self.clear()
-            for point in data:
-                x, y = point
-                self.data.append((x, y))
-                self.ax.plot(x, y, 'bo', label='Data Point' if len(self.data) == 1 else "")
-            self.update_points_text()
-            zoom_to_fit(self)
-            self.canvas.draw()
-            self.import_window.destroy()
+                self.clear()
+                for point in data:
+                    x, y = point
+                    self.data.append((x, y))
+                    self.ax.plot(x, y, 'bo', label='Data Point' if len(self.data) == 1 else "")
+                self.update_points_text()
+                zoom_to_fit(self)
+                self.canvas.draw()
+                self.import_window.destroy()
+            else:
+                raise ValueError("Generated data does not have the correct format")
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
