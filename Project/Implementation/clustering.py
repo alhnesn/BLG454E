@@ -29,9 +29,9 @@ def k_means_clustering(self):
         if self.kmeans_centers_plot:
             self.kmeans_centers_plot.remove()
 
-        # Perform K-Means clustering manually
         centroids, labels = k_means_manual(x, n_clusters)
-        
+        self.kmeans = type('KMeans', (object,), {'labels_': labels})()
+
         self.kmeans_plot = self.ax.scatter(x[:, 0], x[:, 1], c=labels, s=50, cmap='viridis', label='Clusters', zorder=2)
         self.kmeans_centers_plot = self.ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=100, alpha=0.75, marker='x', label='Centroids', zorder=3)
         self.ax.legend()
@@ -103,7 +103,7 @@ def agglomerative_clustering(self):
         return
 
     try:
-        if self.kmeans_centers_plot:  # Remove K-Means centroids if they exist
+        if self.kmeans_centers_plot:
             self.kmeans_centers_plot.remove()
             self.kmeans_centers_plot = None
 
@@ -111,6 +111,7 @@ def agglomerative_clustering(self):
             self.agglom_plot.remove()
 
         labels = agglomerative_clustering_manual(x, n_clusters)
+        self.agglom = type('AgglomerativeClustering', (object,), {'labels_': labels})()
 
         self.agglom_plot = self.ax.scatter(x[:, 0], x[:, 1], c=labels, s=50, cmap='viridis', label='Clusters', zorder=2)
         self.ax.legend()

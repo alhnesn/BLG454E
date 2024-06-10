@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import Tk, Frame, Button, Label, Entry, Text, Scrollbar, filedialog, messagebox, Toplevel, Listbox, SINGLE
+import os
+import csv
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from sklearn.datasets import make_blobs, make_moons, make_circles
 import numpy as np
@@ -214,6 +216,11 @@ class InteractiveTool:
 
         self.help_button = Button(bottom_frame, text="?", command=self.create_help_window, **button_style)
         self.help_button.pack(side="right", padx=5)
+
+        self.save_button = Button(bottom_frame, text="Save Results", command=self.save_results, **button_style)
+        self.save_button.pack(side="left", padx=5)
+
+
 
     def open_import_window(self):
         self.import_window = Toplevel(self.master)
@@ -538,3 +545,40 @@ class InteractiveTool:
     def on_closing(self):
         self.master.quit()
         self.master.destroy()
+
+    def save_results(self):
+        results_saved = False
+        
+        # Save regression results if any
+        regression_text = self.equation_text.get("1.0", tk.END).strip()
+        if regression_text:
+            file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")], title="Save Regression Results")
+            if file_path:
+                with open(file_path, 'w') as f:
+                    f.write(regression_text)
+                results_saved = True
+        
+        # Save clustering results if any
+        if self.kmeans is not None or self.agglom is not None:
+            if self.kmeans is not None:
+                labels = self.kmeans.labels_
+                clustering_type = 'K-Means'
+            else:
+                labels = self.agglom.labels_
+                clustering_type = 'Agglomerative'
+
+            if labels is not None:
+                file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")], title="Save Clustering Results")
+                if file_path:
+                    try:
+                        with open(file_path, 'w', newline='') as f:
+                            writer = csv.writer(f)
+                            writer.writerow(["X", "Y", clustering_type])
+                            for (x, y), label in zip(self.data, labels):
+                                writer.writerow([x, y, label])
+                        results_saved = True
+                    except Exception as e:
+                        messagebox.showerror("Error", f"Failed to save clustering results: {str(e)}")
+
+        if not results_saved:
+            messagebox.showinfo("No Results", "There are no results to save.")
