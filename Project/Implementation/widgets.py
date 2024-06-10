@@ -28,11 +28,11 @@ class InteractiveTool:
         self.agglom_plot = None
 
         self.example_datasets = [
-            {"filename": "examples/concentric_circles_example.csv", "title": "Concentric Circles Example"},
-            {"filename": "examples/polynomial_example1.csv", "title": "Polynomial Example 1"},
-            {"filename": "examples/polynomial_example2.csv", "title": "Polynomial Example 2"},
-            {"filename": "examples/tilted_blobs_example.csv", "title": "Tilted Blobs Example"},
-            {"filename": "examples/two_moons_example.csv", "title": "Two Moons Example"}
+            {"filename": "Project/Implementation/examples/concentric_circles_example.csv", "title": "Concentric Circles Example"},
+            {"filename": "Project/Implementation/examples/polynomial_example1.csv", "title": "Polynomial Example 1"},
+            {"filename": "Project/Implementation/examples/polynomial_example2.csv", "title": "Polynomial Example 2"},
+            {"filename": "Project/Implementation/examples/tilted_blobs_example.csv", "title": "Tilted Blobs Example"},
+            {"filename": "Project/Implementation/examples/two_moons_example.csv", "title": "Two Moons Example"}
         ]
 
         self.create_widgets()
