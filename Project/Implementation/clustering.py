@@ -71,12 +71,13 @@ def remove_kmeans_clustering(self):
         self.kmeans_centers_plot = None
     self.kmeans = None
     handles, labels = self.ax.get_legend_handles_labels()
-    new_handles_labels = [(h, l) for h, l in zip(handles, labels) if l != 'Clusters' and l != 'Centroids']
+    new_handles_labels = [(h, l) for h, l in zip(handles, labels) if 'Clusters' not in l and 'Centroids' not in l]
     if new_handles_labels:
         handles, labels = zip(*new_handles_labels)
         self.ax.legend(handles=handles, labels=labels)
     else:
-        self.ax.legend().remove()
+        if self.ax.get_legend():
+            self.ax.get_legend().remove()
     self.canvas.draw()
 
 def agglomerative_clustering(self):
@@ -141,10 +142,11 @@ def remove_agglomerative_clustering(self):
         self.agglom_plot = None
     self.agglom = None
     handles, labels = self.ax.get_legend_handles_labels()
-    new_handles_labels = [(h, l) for h, l in zip(handles, labels) if l != 'Clusters']
+    new_handles_labels = [(h, l) for h, l in zip(handles, labels) if 'Clusters' not in l]
     if new_handles_labels:
         handles, labels = zip(*new_handles_labels)
         self.ax.legend(handles=handles, labels=labels)
     else:
-        self.ax.legend().remove()
+        if self.ax.get_legend():
+            self.ax.get_legend().remove()
     self.canvas.draw()

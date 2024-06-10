@@ -424,7 +424,8 @@ class InteractiveTool:
         self.clear_regressions_and_clustering()
         self.error_label.config(text="")
         self.update_points_text()
-        self.ax.legend().remove()  # Remove the legend explicitly
+        if self.ax.get_legend():
+            self.ax.get_legend().remove()
         self.canvas.draw()
 
     def clear_regressions_and_clustering(self):
@@ -432,6 +433,7 @@ class InteractiveTool:
         self.remove_polynomial_regression()
         self.remove_kmeans_clustering()
         self.remove_agglomerative_clustering()
+        self.canvas.draw()
 
     def update_points_text(self):
         self.points_text.config(state=tk.NORMAL)
@@ -511,7 +513,7 @@ class InteractiveTool:
             handles, labels = zip(*new_handles_labels)
             self.ax.legend(handles=handles, labels=labels)
         else:
-            if self.ax.get_legend() is not None:
+            if self.ax.get_legend():
                 self.ax.get_legend().remove()
 
     def update_equation_text(self, text):
