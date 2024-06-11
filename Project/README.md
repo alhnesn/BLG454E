@@ -27,6 +27,8 @@ cd BLG454E/Project/Implementation
 3. Run the main Python file:
 python main.py
 
+For a video explanation: https://youtu.be/4wRPLufgkgE
+
 ## Usage
 - **Add Point**: Manually add a data point by entering the X and Y coordinates and clicking "Add Point".
 - **Import Data**: Import data from a CSV file or use example datasets.
