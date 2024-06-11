@@ -38,5 +38,3 @@ python main.py
 - **Clear All**: Clear all data points and results.
 - **Save Results**: Save the regression equations and clustering results to files.
 - **Help**: Access the help window for detailed instructions on using the tool.
-
-Enjoy using ICARDI for your data analysis tasks!
