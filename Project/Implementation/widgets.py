@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import Tk, Frame, Button, Label, Entry, Text, Scrollbar, filedialog, messagebox, Toplevel, Listbox, SINGLE
+from tkinter import Tk, Frame, Button, Label, Entry, Text, Scrollbar, filedialog, messagebox, Toplevel, Listbox, SINGLE, PhotoImage
 import os
 import csv
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -14,7 +14,7 @@ from clustering import k_means_clustering, remove_kmeans_clustering, agglomerati
 class InteractiveTool:
     def __init__(self, master):
         self.master = master
-        self.master.title("Interactive Regression and Clustering Tool")
+        self.master.title("(ICARDI) Interactive Clustering and Regression Data Interface")
         self.master.geometry("1050x650")
         self.master.resizable(False, False)
         self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -314,7 +314,7 @@ class InteractiveTool:
     def create_help_window(self):
         help_window = Toplevel(self.master)
         help_window.title("Help")
-        help_window.geometry("500x400")
+        help_window.geometry("600x500")
 
         help_frame = Frame(help_window)
         help_frame.pack(fill="both", expand=True)
@@ -327,38 +327,49 @@ class InteractiveTool:
         scrollbar.config(command=help_text.yview)
 
         help_content = (
-            "How to Use the Program:\n\n"
-            "1. Add Points:\n"
+            "How to Use the Interactive Regression and Clustering Tool:\n\n"
+            "1. Adding Points:\n"
             "   - Use the X and Y entry fields to input coordinates.\n"
-            "   - Click 'Add Point' to add the point to the graph.\n\n"
-            "2. Import Data:\n"
+            "   - Click 'Add Point' to add the point to the graph.\n"
+            "   - You can also add points by clicking directly on the graph.\n\n"
+            "2. Importing Data:\n"
             "   - Click 'Import Data' to load data.\n"
-            "   - Choose 'Import Example Data' to select from predefined datasets.\n"
+            "   - Choose 'Import Example Data' to select from generated datasets.\n"
             "   - Choose 'Import Own Data' to load a CSV file with X, Y coordinates.\n"
-            "   - The CSV file should have two columns: X and Y.\n\n"
+            "   - The CSV file should have two columns: X and Y.\n"
+            "   - If the number of points exceeds 300, you will be prompted with the option to reduce the points.\n\n"
             "3. Regression Tools:\n"
             "   - Linear Regression: Click 'Linear Regression' to fit a linear model.\n"
-            "   - Polynomial Regression: Enter the degree and click 'Polynomial Regression'.\n"
-            "   - Clear: Click 'Clear' to remove the regression.\n\n"
+            "   - Polynomial Regression: Enter the degree in the 'Degree' textbox and click 'Polynomial Regression'.\n"
+            "     - If the degree textbox is empty, the tool will automatically determine the optimal degree using the Bayesian Information Criterion (BIC).\n"
+            "   - Clear: Click 'Clear' next to the regression button to remove the regression.\n\n"
             "4. Clustering Tools:\n"
-            "   - K-Means Clustering: Enter the number of clusters (K) and click 'K-Means Clustering'.\n"
-            "   - Agglomerative Clustering: Enter the number of clusters (K) and click 'Agglomerative Clustering'.\n"
-            "   - Clear: Click 'Clear' to remove the clustering.\n\n"
+            "   - K-Means Clustering: Enter the number of clusters (K) in the 'K' textbox and click 'K-Means Clustering'.\n"
+            "     - If the 'K' textbox is empty, the tool will automatically determine the optimal number of clusters using the silhouette score.\n"
+            "   - Agglomerative Clustering: Enter the number of clusters (K) in the 'K' textbox and click 'Agglomerative Clustering'.\n"
+            "   - Clear: Click 'Clear' next to the clustering button to remove the clustering.\n\n"
             "5. Other Features:\n"
+            "   - Clear Tools: Click to remove all regressions and clustering results from the graph.\n"
             "   - Clear All: Click to clear all points and regressions/clustering.\n"
-            "   - Highlight Points: Click 'Highlight' next to a point to change its color.\n"
+            "   - Highlight Points: Click 'Highlight' next to a point to toggle highlight for that point and add it to the legend as P1, P2, etc.\n"
+            "   - Edit Points: Click 'Edit' next to a point to edit its values.\n"
             "   - Remove Points: Click 'Remove' next to a point to delete it.\n\n"
             "6. Navigation:\n"
-            "   - Drag the graph: Use the pan button on the toolbar.\n"
-            "   - Zoom: Use the scroll wheel to zoom in and out, or use the zoom button on the toolbar.\n\n"
-            "Note:\n"
+            "   - Pan: Use the pan button on the toolbar to drag the graph.\n"
+            "   - Zoom: Use the scroll wheel to zoom in and out, or use the zoom button on the toolbar.\n"
+            "   - Zoom to Rectangle: Use the zoom rectangle button on the toolbar to zoom into a specific area.\n"
+            "   - Home: Click the home button on the toolbar to reset the view to the original state.\n\n"
+            "7. Saving Results:\n"
+            "   - Click 'Save Results' to save the results of your analysis.\n"
+            "     - If a regression is applied, you will be prompted to save the regression equation and MSE as a text file.\n"
+            "     - If clustering is applied, you will be prompted to save the data points along with their cluster labels as a CSV file.\n\n"
+            "Notes:\n"
             "- Ensure the CSV file is in the correct format (two columns: X and Y).\n"
-            "- If the number of points exceeds 300, you will be prompted to reduce the points.\n"
-            "- Polynomial regression degree cannot exceed the number of data points."
         )
 
         help_text.insert(tk.END, help_content)
         help_text.config(state=tk.DISABLED)
+
 
     def add_point_from_entry(self):
         try:
@@ -440,6 +451,7 @@ class InteractiveTool:
     def clear(self):
         self.ax.clear()
         self.data = []
+        self.highlights = {}
         plot_initial_graph(self)
         self.clear_regressions_and_clustering()
         self.error_label.config(text="")
@@ -465,7 +477,7 @@ class InteractiveTool:
 
             edit_button = Button(self.points_frame, text="Edit", command=lambda i=i: self.edit_point(i))
             remove_button = Button(self.points_frame, text="Remove", command=lambda i=i: self.remove_point(i))
-            highlight_button = Button(self.points_frame, text="Highlight", command=lambda i=i: self.highlight_point(i))
+            highlight_button = Button(self.points_frame, text="Highlight" if i not in self.highlights else "Unhighlight", command=lambda i=i: self.highlight_point(i))
 
             self.points_text.window_create("end", window=edit_button)
             self.points_text.insert("end", " ")
@@ -501,13 +513,42 @@ class InteractiveTool:
             messagebox.showerror("Error", "Invalid input")
 
     def remove_point(self, index):
+        # Get the current axis limits
+        xlim = self.ax.get_xlim()
+        ylim = self.ax.get_ylim()
+
+        # Remove the point from the data
         del self.data[index]
+
+        # Remove the highlight if it exists
+        if index in self.highlights:
+            self.highlights[index].remove()
+            del self.highlights[index]
+        
+        # Adjust the highlight indices
+        new_highlights = {}
+        for i, h in self.highlights.items():
+            if i > index:
+                new_highlights[i - 1] = h
+            else:
+                new_highlights[i] = h
+        self.highlights = new_highlights
+
+        # Redraw the graph
         self.ax.clear()
         plot_initial_graph(self)
         for point in self.data:
             self.ax.plot(point[0], point[1], 'bo')
+        for highlight in self.highlights.values():
+            self.ax.add_artist(highlight)
         self.update_points_text()
         self.clear_regressions_and_clustering()
+        self.update_legend()  # Update the legend to reflect changes
+        
+        # Restore the previous axis limits
+        self.ax.set_xlim(xlim)
+        self.ax.set_ylim(ylim)
+        
         self.canvas.draw()
 
     def highlight_point(self, index):
@@ -533,7 +574,7 @@ class InteractiveTool:
             handles, labels = zip(*new_handles_labels)
             self.ax.legend(handles=handles, labels=labels)
         else:
-            if self.ax.get_legend():
+            if self.ax.get_legend() is not None:
                 self.ax.get_legend().remove()
 
     def update_equation_text(self, text):
